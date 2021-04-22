@@ -48,11 +48,15 @@ func (m *Mutex) Lock() {
 	}
 
 	awoke := false
-	iter := 0
+	iter := 0 //自旋次数
 	for {
 		old := m.state
 		new := old | mutexLocked
 		if old&mutexLocked != 0 {
+			// 自旋需要满足的条件
+			// 1, 运行在多 CPU 的机器上；
+			// 2, 当前 Goroutine 为了获取该锁进入自旋的次数小于四次；
+			// 3, 当前机器上至少存在一个正在运行的处理器 P 并且处理的运行队列为空；
 			if runtime_canSpin(iter) {
 				// Active spinning makes sense.
 				// Try to set mutexWoken flag to inform Unlock
