@@ -85,7 +85,8 @@ func (m *Mutex) Unlock() {
 		// If there are no waiters or a goroutine has already
 		// been woken or grabbed the lock, no need to wake anyone.
 		// 没有其它 waiter，或是已经有其它 goroutine 获取到锁，或是有其它waiter被唤醒
-		// 这里要说一下，为什么会有被唤醒的 waiter，因为上一步的解锁操作完成后，如果有新来的 goroutine 获取到锁，并执行结束，同时完成了解锁操作，它就有可能唤醒了其它 waiter
+		// 这里要说一下，为什么会有被唤醒的 waiter？
+		// 因为上一步的解锁操作完成后，如果有新来的 goroutine 获取到锁，并执行结束，同时完成了解锁操作，它就有可能唤醒了其它 waiter
 		if old>>mutexWaiterShift == 0 || old&(mutexLocked|mutexWoken) != 0 {
 			return
 		}
@@ -97,7 +98,7 @@ func (m *Mutex) Unlock() {
 			runtime_Semrelease(&m.sema) // 唤醒1个 waiter
 			return // 老子的解锁操作终于做完了
 		}
-		// 完了，上一步所说的唤醒操作没成功！没办法只好获取最新的锁状态，再重复一次
+		// 完了，上一步所说的尝试唤醒操作没成功！没办法只好获取最新的锁状态，再重复一次
 		old = m.state
 	}
 }
