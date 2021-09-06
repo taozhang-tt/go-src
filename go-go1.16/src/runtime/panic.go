@@ -236,15 +236,19 @@ func deferproc(siz int32, fn *funcval) { // arguments of fn follow fn
 	argp := uintptr(unsafe.Pointer(&fn)) + unsafe.Sizeof(fn)
 	callerpc := getcallerpc()
 
+	// 新创建的d存到哪里了？
 	d := newdefer(siz)
 	if d._panic != nil {
 		throw("deferproc: d.panic != nil after newdefer")
 	}
+	// 将d保存到 G._defer 链表
 	d.link = gp._defer
 	gp._defer = d
 	d.fn = fn
 	d.pc = callerpc
 	d.sp = sp
+
+	// 复制函数参数到defer对象后面的内存空间
 	switch siz {
 	case 0:
 		// Do nothing.
@@ -520,6 +524,7 @@ func freedeferfn() {
 //
 // The single argument isn't actually used - it just has its address
 // taken so it can be matched against pending defers.
+// 从 G._defer 链表获取并执行延迟调用函数
 //go:nosplit
 func deferreturn(arg0 uintptr) {
 	gp := getg()

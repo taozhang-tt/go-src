@@ -413,7 +413,8 @@ type g struct {
 	stackguard0 uintptr // offset known to liblink
 	stackguard1 uintptr // offset known to liblink
 
-	_panic       *_panic // innermost panic - offset known to liblink
+	_panic *_panic // innermost panic - offset known to liblink
+	// 延迟调用函数链表
 	_defer       *_defer // innermost defer
 	m            *m      // current m; offset known to arm liblink
 	sched        gobuf
